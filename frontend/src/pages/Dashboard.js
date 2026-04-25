@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/config";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { MapPin, AlertCircle } from "lucide-react"; 
+import { MapPin, AlertCircle } from "lucide-react";
 import "./ReportNeed.css";
 
 export default function Dashboard() {
   const [needs, setNeeds] = useState([]);
+  const [volunteers, setVolunteers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchNeeds();
+    fetchVolunteers();
   }, []);
 
+  //Fetch Needs
   const fetchNeeds = async () => {
     try {
       const q = query(collection(db, "needs"), orderBy("createdAt", "desc"));
@@ -30,13 +33,74 @@ export default function Dashboard() {
     }
   };
 
+  //Fetch Volunteers
+  const fetchVolunteers = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "volunteers"));
+
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setVolunteers(data);
+    } catch (error) {
+      console.log("Volunteer fetch error:", error);
+    }
+  };
+
+  //Urgency UI class
   const getUrgencyClass = (urgency) => {
     switch (urgency) {
-      case 'High': return 'urgency-high';
-      case 'Medium': return 'urgency-medium';
-      case 'Low': return 'urgency-low';
-      default: return 'urgency-default';
+      case "High":
+        return "urgency-high";
+      case "Medium":
+        return "urgency-medium";
+      case "Low":
+        return "urgency-low";
+      default:
+        return "urgency-default";
     }
+  };
+
+  //Matching Logic (FINAL)
+  const getMatches = (need) => {
+    const keywords = [
+      "food","book","medical","education","clothes",
+      "copy","stationery","teaching","sports"
+    ];
+
+    const needText = (need.title + " " + need.description).toLowerCase();
+
+    return volunteers
+      .map((v) => {
+        const skillsText = v.skills?.toLowerCase() || "";
+
+        // Skill score (MAIN)
+        let skillScore = 0;
+        keywords.forEach((word) => {
+          if (needText.includes(word) && skillsText.includes(word)) {
+            skillScore += 1;
+          }
+        });
+
+        // Location score
+        let locationScore = 0;
+        if (v.location?.toLowerCase() === need.location?.toLowerCase()) {
+          locationScore = 1;
+        }
+
+        //Urgency (LOW weight)
+        let urgencyScore = 0;
+        if (need.urgency === "High") urgencyScore = 1;
+        else if (need.urgency === "Medium") urgencyScore = 0.5;
+
+        //Final score
+        const score = (skillScore * 3) + (locationScore * 2) + urgencyScore;
+
+        return { ...v, score };
+      })
+      .sort((a, b) => b.score - a.score);
   };
 
   return (
@@ -50,33 +114,73 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <p style={{ color: "var(--color-text-secondary)", textAlign: "center" }}>Loading needs...</p>
+        <p style={{ textAlign: "center" }}>Loading needs...</p>
       ) : needs.length === 0 ? (
-        <p style={{ color: "var(--color-text-secondary)", textAlign: "center" }}>No needs found in your community yet.</p>
+        <p style={{ textAlign: "center" }}>
+          No needs found in your community yet.
+        </p>
       ) : (
         <div className="cards-grid">
-          {needs.map((item) => (
-            <div key={item.id} className="glass-card need-card">
-              
-              <div className="card-header">
-                <h3 className="card-title">{item.title}</h3>
-                <span className={`urgency-badge ${getUrgencyClass(item.urgency)}`}>
-                  <AlertCircle size={12} />
-                  {item.urgency}
-                </span>
-              </div>
-              
-              <p className="card-description">
-                {item.description}
-              </p>
-              
-              <div className="card-footer">
-                <MapPin size={16} className="location-icon" />
-                {item.location}
-              </div>
+          {needs.map((item) => {
+            const matches = getMatches(item).slice(0, 2);
+            const validMatches = matches.filter(v => v.score > 0);
 
-            </div>
-          ))}
+            return (
+              <div key={item.id} className="glass-card need-card">
+                
+                {/* Header */}
+                <div className="card-header">
+                  <h3 className="card-title">{item.title}</h3>
+                  <span className={`urgency-badge ${getUrgencyClass(item.urgency)}`}>
+                    <AlertCircle size={12} />
+                    {item.urgency}
+                  </span>
+                </div>
+
+                {/* Description */}
+                <p className="card-description">{item.description}</p>
+
+                {/* Location */}
+                <div className="card-footer">
+                  <MapPin size={16} />
+                  {item.location}
+                </div>
+
+                {/*MATCHING SECTION */}
+                <div
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "13px",
+                    borderTop: "1px solid rgba(255,255,255,0.1)",
+                    paddingTop: "8px",
+                  }}
+                >
+                  <strong>Suggested Volunteers:</strong>
+
+                  {validMatches.length === 0 ? (
+                    <p style={{ color: "#999" }}>
+                      No suitable match found
+                    </p>
+                  ) : (
+                    <>
+                      {/* ⭐ Best Match */}
+                      <p style={{ color: "#22c55e", fontWeight: "bold" }}>
+                        ⭐ Best Match: {validMatches[0].name}
+                      </p>
+
+                      {/* List */}
+                      {validMatches.map((v) => (
+                        <p key={v.id}>
+                          {v.name} (Score: {Math.round(v.score)})
+                        </p>
+                      ))}
+                    </>
+                  )}
+                </div>
+
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
