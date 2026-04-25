@@ -109,7 +109,7 @@ export default function Dashboard() {
   return (
     <div className="dashboard-wrapper animate-fade-in">
       <div className="dashboard-header">
-        <h2 className="dashboard-title">All Needs</h2>
+        <h2 className="dashboard-title">AI Suggested Matches</h2>
         <div className="glass-card live-indicator">
           <div className="pulse-dot"></div>
           Live Updates
@@ -166,9 +166,9 @@ export default function Dashboard() {
                     </p>
                   ) : (
                     <>
-                      {/* ⭐ Best Match */}
+                      {/* Best Match */}
                       <p style={{ color: "#22c55e", fontWeight: "bold" }}>
-                        ⭐ Best Match: {validMatches[0].name}
+                        ✅ Best Match: {validMatches[0].name}
                       </p>
 
                       {/* List */}

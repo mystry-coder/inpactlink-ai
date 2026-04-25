@@ -87,7 +87,7 @@ body {
   padding: 0.5rem;
   border-radius: 9999px;
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 .nav-btn {
   padding: 0.625rem 1.5rem;
@@ -250,8 +250,8 @@ body {
 }
 /* DASHBOARD */
 .dashboard-wrapper {
-  width: 100%;
-  max-width: 56rem;
+  padding-top: 40px;
+  min-height: 80vh;
 }
 .dashboard-header {
   margin-bottom: 2rem;

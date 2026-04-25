@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import NeedForm from "./pages/NeedForm";
 import Dashboard from "./pages/Dashboard";
 import VolunteerForm from "./pages/VolunteerForm";
+import Home from "./pages/Home";
+import MapView from "./pages/MapView";
 
 function App() {
-  const [page, setPage] = useState("need");
+  const [page, setPage] = useState("home");
 
   return (
     <div className="app-container">
-      
+            
       {/* Header & Navigation */}
       <header className="app-header">
         <div className="logo-container">
@@ -22,33 +24,50 @@ function App() {
 
         <nav className="glass-nav">
           <button
-            className={`nav-btn ${page === "need" ? "nav-btn-active" : "nav-btn-inactive"}`}
-            onClick={() => setPage("need")}
+            className={`nav-btn ${page === "home" ? "nav-btn-active" : ""}`}
+            onClick={() => setPage("home")}
           >
-            Need Form
+          Home
           </button>
 
           <button
-            className={`nav-btn ${page === "dashboard" ? "nav-btn-active" : "nav-btn-inactive"}`}
+            className={`nav-btn ${page === "need" ? "nav-btn-active" : ""}`}
+            onClick={() => setPage("need")}
+          >
+            Report Need
+          </button>
+
+          <button
+            className={`nav-btn ${page === "dashboard" ? "nav-btn-active" : ""}`}
             onClick={() => setPage("dashboard")}
           >
             Dashboard
           </button>
 
           <button
-            className={`nav-btn ${page === "volunteer" ? "nav-btn-active" : "nav-btn-inactive"}`}
+            className={`nav-btn ${page === "volunteer" ? "nav-btn-active" : ""}`}
             onClick={() => setPage("volunteer")}
           >
             Volunteer
+          </button>
+
+          <button
+            className={`nav-btn ${page === "map" ? "nav-btn-active" : ""}`}
+            onClick={() => setPage("map")}
+          >
+            Map
           </button>
         </nav>
       </header>
 
       {/* Page Switching */}
       <main className="app-main">
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}></div>
+        {page === "home" && <Home setPage={setPage} />}
         {page === "need" && <NeedForm setPage={setPage} />}
         {page === "dashboard" && <Dashboard />}
         {page === "volunteer" && <VolunteerForm setPage={setPage} />}
+        {page === "map" && <MapView />}
       </main>
 
     </div>
