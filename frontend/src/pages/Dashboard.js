@@ -90,13 +90,16 @@ export default function Dashboard() {
           locationScore = 1;
         }
 
-        //Urgency (LOW weight)
         let urgencyScore = 0;
-        if (need.urgency === "High") urgencyScore = 1;
-        else if (need.urgency === "Medium") urgencyScore = 0.5;
+        if (need.urgency === "High") urgencyScore = 3;
+        else if (need.urgency === "Medium") urgencyScore = 2;
+        else urgencyScore = 1;
 
-        //Final score
-        const score = (skillScore * 3) + (locationScore * 2) + urgencyScore;
+        // Better weighted scoring
+        const score = 
+          (skillScore * 5) + 
+          (locationScore * 3) + 
+          (urgencyScore * 2);
 
         return { ...v, score };
       })
